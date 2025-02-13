@@ -10,6 +10,8 @@
     href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
     rel="stylesheet"
   />
+  <!-- Chart.js for data analysis charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ========= Base Styles ========= */
     body {
@@ -21,7 +23,7 @@
     .hidden {
       display: none !important;
     }
-    /* Restore child-row styling from previous version */
+    /* Restore original child-row styling */
     .child-row {
       display: flex;
       align-items: center;
@@ -602,6 +604,44 @@
     #documentationPage ol {
       margin-left: 1.5rem;
     }
+
+    /* ========= DATA ANALYSIS SECTION ========= */
+    #dataAnalysisPage .analysis-filters {
+      margin-bottom: 1rem;
+    }
+    #dataAnalysisPage label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+    #dataAnalysisPage input[type="date"],
+    #dataAnalysisPage select {
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #dataAnalysisPage button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      background-color: #0288d1;
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    #dataAnalysisPage button:hover {
+      background-color: #0277bd;
+    }
+    #analysisChartsContainer {
+      margin-top: 1rem;
+    }
+    #analysisChartsContainer h3, #analysisChartsContainer h4 {
+      margin: 0.5rem 0;
+    }
   </style>
 </head>
 <body>
@@ -617,6 +657,7 @@
         <li><a href="#" data-page="dataCollectorPage" class="menuItem active">Data Collector</a></li>
         <li><a href="#" data-page="manageDataPage" class="menuItem">Manage Data</a></li>
         <li><a href="#" data-page="programBuilderPage" class="menuItem">Program Builder</a></li>
+        <li><a href="#" data-page="dataAnalysisPage" class="menuItem">Data Analysis</a></li>
         <li><a href="#" data-page="documentationPage" class="menuItem">Documentation</a></li>
       </ul>
     </div>
@@ -761,6 +802,23 @@
     </div>
   </section>
 
+  <!-- Data Analysis Page -->
+  <section id="dataAnalysisPage" style="display: none;">
+    <div class="container">
+      <h2>Data Analysis</h2>
+      <div class="analysis-filters">
+        <label for="analysisChildSelect">Select Child:</label>
+        <select id="analysisChildSelect"></select>
+        <label for="analysisStartDate">Start Date:</label>
+        <input type="date" id="analysisStartDate">
+        <label for="analysisEndDate">End Date:</label>
+        <input type="date" id="analysisEndDate">
+        <button id="applyAnalysisFilter">Apply Filter</button>
+      </div>
+      <div id="analysisChartsContainer"></div>
+    </div>
+  </section>
+
   <!-- Documentation Page -->
   <section id="documentationPage" style="display: none;">
     <div class="container">
@@ -784,6 +842,7 @@
           <li><strong>Data Collector:</strong> Main page for recording trial outcomes.</li>
           <li><strong>Manage Data:</strong> View, edit, import/export, or reset program records.</li>
           <li><strong>Program Builder:</strong> A multi‑step wizard to create or update instructional programs.</li>
+          <li><strong>Data Analysis:</strong> Analyze trial data by program and target over a specified date range.</li>
           <li><strong>Documentation:</strong> This guide, providing instructions for every feature of the app.</li>
         </ul>
 
@@ -928,6 +987,7 @@
         document.getElementById('dataCollectorPage').style.display = 'none';
         document.getElementById('manageDataPage').style.display = 'none';
         document.getElementById('programBuilderPage').style.display = 'none';
+        document.getElementById('dataAnalysisPage').style.display = 'none';
         document.getElementById('documentationPage').style.display = 'none';
         document.querySelectorAll('.dropdown-menu a.menuItem').forEach(a => a.classList.remove('active'));
         // Show selected page
@@ -935,6 +995,10 @@
         this.classList.add('active');
         if(page === 'programBuilderPage'){
           document.getElementById('programBuilderSection').classList.remove('hidden');
+        }
+        if(page === 'dataAnalysisPage'){
+          populateAnalysisChildSelect();
+          document.getElementById("analysisChartsContainer").innerHTML = "";
         }
         dropdownMenu.classList.add('hidden');
       });
@@ -2009,6 +2073,172 @@
       updateInstructions();
       updatePriorResults();
     });
+
+    /*******************************************************************************
+     *   DATA ANALYSIS LOGIC
+     *******************************************************************************/
+    function populateAnalysisChildSelect() {
+      const select = document.getElementById("analysisChildSelect");
+      select.innerHTML = "";
+      // Only include children that have trial data
+      const children = [...new Set(trialHistory.map(t => t.child))];
+      children.forEach(child => {
+        let opt = document.createElement("option");
+        opt.value = child;
+        opt.textContent = child;
+        select.appendChild(opt);
+      });
+    }
+    document.getElementById("applyAnalysisFilter").addEventListener("click", function(){
+      analyzeData();
+    });
+    function analyzeData(){
+      const child = document.getElementById("analysisChildSelect").value;
+      const startDate = document.getElementById("analysisStartDate").value;
+      const endDate = document.getElementById("analysisEndDate").value;
+      if (!child) {
+         alert("Please select a child.");
+         return;
+      }
+      if (!startDate || !endDate) {
+         alert("Please select a start and end date.");
+         return;
+      }
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      // Filter trialHistory for selected child and date range
+      const filtered = trialHistory.filter(t => {
+         if(t.child !== child) return false;
+         const trialDate = new Date(t.timestamp);
+         return trialDate >= start && trialDate <= end;
+      });
+      // Group data by program and date
+      const programs = {};
+      filtered.forEach(t => {
+         const prog = t.program;
+         const date = t.timestamp.substr(0,10);
+         if(!programs[prog]) programs[prog] = {};
+         if(!programs[prog][date]) programs[prog][date] = { independent: 0, total: 0 };
+         programs[prog][date].total++;
+         if(t.result === "independent") {
+            programs[prog][date].independent++;
+         }
+      });
+      const container = document.getElementById("analysisChartsContainer");
+      container.innerHTML = "";
+      for(let prog in programs){
+         const dateData = programs[prog];
+         const dates = Object.keys(dateData).sort();
+         const percentages = dates.map(d => {
+             const data = dateData[d];
+             return (data.independent / data.total) * 100;
+         });
+         // Create a container for this program's chart
+         const progDiv = document.createElement("div");
+         progDiv.style.marginBottom = "2rem";
+         const title = document.createElement("h3");
+         title.textContent = prog;
+         progDiv.appendChild(title);
+         const canvas = document.createElement("canvas");
+         const progId = "chart-" + prog.replace(/\s+/g, "-");
+         canvas.id = progId;
+         progDiv.appendChild(canvas);
+         // Show Details button for targets
+         const detailsBtn = document.createElement("button");
+         detailsBtn.textContent = "Show Details";
+         detailsBtn.style.display = "block";
+         detailsBtn.style.marginTop = "1rem";
+         progDiv.appendChild(detailsBtn);
+         const detailsDiv = document.createElement("div");
+         detailsDiv.style.display = "none";
+         detailsDiv.style.marginTop = "1rem";
+         progDiv.appendChild(detailsDiv);
+         detailsBtn.addEventListener("click", function(){
+              if(detailsDiv.style.display === "none"){
+                  detailsDiv.style.display = "block";
+                  detailsBtn.textContent = "Hide Details";
+                  populateDetails(prog, filtered, detailsDiv);
+              } else {
+                  detailsDiv.style.display = "none";
+                  detailsBtn.textContent = "Show Details";
+              }
+         });
+         container.appendChild(progDiv);
+         new Chart(canvas, {
+             type: 'line',
+             data: {
+                labels: dates,
+                datasets: [{
+                  label: 'Independent %',
+                  data: percentages,
+                  borderColor: 'blue',
+                  fill: false,
+                  tension: 0.1
+                }]
+             },
+             options: {
+                 responsive: true,
+                 plugins: { legend: { display: true } },
+                 scales: {
+                     x: { title: { display: true, text: 'Date' } },
+                     y: { title: { display: true, text: 'Independent %' }, min: 0, max: 100 }
+                 }
+             }
+         });
+      }
+    }
+    function populateDetails(program, filtered, container){
+       // Filter trials for the selected program
+       const programData = filtered.filter(t => t.program === program);
+       // Group by target and then by date
+       const targets = {};
+       programData.forEach(t => {
+         const target = t.target;
+         const date = t.timestamp.substr(0,10);
+         if(!targets[target]) targets[target] = {};
+         if(!targets[target][date]) targets[target][date] = { independent: 0, total: 0 };
+         targets[target][date].total++;
+         if(t.result === "independent"){
+              targets[target][date].independent++;
+         }
+       });
+       container.innerHTML = "";
+       for(let target in targets){
+         const targetData = targets[target];
+         const dates = Object.keys(targetData).sort();
+         const percentages = dates.map(d => (targetData[d].independent/targetData[d].total)*100);
+         const targetDiv = document.createElement("div");
+         targetDiv.style.marginBottom = "1rem";
+         const title = document.createElement("h4");
+         title.textContent = target;
+         targetDiv.appendChild(title);
+         const canvas = document.createElement("canvas");
+         canvas.id = "chart-" + program.replace(/\s+/g, "-") + "-" + target.replace(/\s+/g, "-");
+         targetDiv.appendChild(canvas);
+         container.appendChild(targetDiv);
+         new Chart(canvas, {
+             type: 'line',
+             data: {
+                labels: dates,
+                datasets: [{
+                  label: 'Independent %',
+                  data: percentages,
+                  borderColor: 'green',
+                  fill: false,
+                  tension: 0.1
+                }]
+             },
+             options: {
+                 responsive: true,
+                 plugins: { legend: { display: true } },
+                 scales: {
+                     x: { title: { display: true, text: 'Date' } },
+                     y: { title: { display: true, text: 'Independent %' }, min: 0, max: 100 }
+                 }
+             }
+         });
+       }
+    }
   </script>
 </body>
 </html>
