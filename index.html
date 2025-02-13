@@ -30,7 +30,6 @@
       gap: 0.5rem;
       margin-bottom: 1rem;
     }
-
     /* ========= HEADER ========= */
     .app-header {
       position: relative;
@@ -84,7 +83,6 @@
     .dropdown-menu li a.active {
       background-color: #f0f0f0;
     }
-
     /* ========= CONTAINER ========= */
     .container {
       max-width: 800px;
@@ -94,7 +92,6 @@
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-
     /* ========= FORM ELEMENTS ========= */
     select, input[type="text"], textarea {
       font-family: 'Roboto', sans-serif;
@@ -123,7 +120,6 @@
       background-color: #4caf50;
       color: #fff;
     }
-
     /* ========= FULL WIDTH TOP SECTION ========= */
     #topSection {
       position: relative;
@@ -194,7 +190,6 @@
       border: 1px solid #ccc;
       resize: vertical;
     }
-
     /* ========= TRIAL RESULTS ========= */
     .trial-results {
       display: flex;
@@ -233,7 +228,6 @@
     label.fullPhysical {
       background-color: #fffde7;
     }
-
     /* ========= PRIOR RESULTS ========= */
     .prior-results {
       margin-bottom: 1rem;
@@ -264,7 +258,6 @@
     .full-physical {
       background-color: #fffde7;
     }
-
     /* ========= MANAGE DATA SECTION ========= */
     #dataManagementSection {
       position: relative;
@@ -364,7 +357,6 @@
     .tableEditBtn:hover {
       background: #0277bd;
     }
-
     /* ========= MODAL ========= */
     .modal {
       display: none;
@@ -464,7 +456,6 @@
         margin-top: 0.75rem;
       }
     }
-
     /* ========= PROGRAM BUILDER SECTION ========= */
     #programBuilderSection {
       max-width: 800px;
@@ -589,7 +580,6 @@
     .builder-button-row button:hover {
       opacity: 0.9;
     }
-
     /* ========= DOCUMENTATION SECTION ========= */
     #documentationPage .documentation-content {
       padding: 1rem;
@@ -604,7 +594,6 @@
     #documentationPage ol {
       margin-left: 1.5rem;
     }
-
     /* ========= DATA ANALYSIS SECTION ========= */
     #dataAnalysisPage .analysis-filters {
       margin-bottom: 1rem;
@@ -1007,8 +996,24 @@
     /*******************************************************************************
      *   DATA COLLECTOR LOGIC
      *******************************************************************************/
-    let trialHistory = [];
     let sortOrder = 1;
+
+    // New functions to load and save trial data
+    function loadTrialHistory() {
+      const stored = localStorage.getItem("trialHistory");
+      if (stored) {
+        try { return JSON.parse(stored); }
+        catch(e) { console.error("Error parsing trialHistory", e); }
+      }
+      return [];
+    }
+    function saveTrialHistory() {
+      localStorage.setItem("trialHistory", JSON.stringify(trialHistory));
+    }
+
+    // Initialize trialHistory from localStorage
+    let trialHistory = loadTrialHistory();
+
     function loadAppData() {
       const stored = localStorage.getItem("appData");
       if (stored) {
@@ -1290,6 +1295,8 @@
         result,
         timestamp: new Date().toISOString()
       });
+      // Save trial data to localStorage
+      saveTrialHistory();
       updatePriorResults();
       randomizeTrialData();
       document.querySelectorAll('input[name="trialResult"]').forEach(r => r.checked = false);
