@@ -4,14 +4,12 @@
   <meta charset="UTF-8" />
   <title>ABA App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
   <!-- Google Font (Optional) -->
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
     rel="stylesheet"
   />
-
   <style>
     /* ========= Base Styles ========= */
     body {
@@ -29,7 +27,7 @@
       position: relative;
       display: flex;
       align-items: center;
-      justify-content: space-between; /* logo at left, menu at right */
+      justify-content: space-between;
       background: #ffffff;
       padding: 0.5rem 1rem;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -686,7 +684,6 @@
       <hr/>
       <h2>Manage Data</h2>
       <div class="data-buttons">
-        <!-- Renamed button -->
         <button id="toggleDataTableBtn">View Edit Programs</button>
         <button id="addNewRecordBtn">Add New Record</button>
         <button id="importProgramBtn">Import Program CSV</button>
@@ -796,7 +793,7 @@
   <script>
     /*******************************************************************************
      *   MENU & PAGE NAVIGATION
-     ******************************************************************************/
+     *******************************************************************************/
     const menuToggle = document.getElementById('menuToggle');
     const dropdownMenu = document.getElementById('dropdownMenu');
     menuToggle.addEventListener('click', () => {
@@ -826,7 +823,7 @@
 
     /*******************************************************************************
      *   DATA COLLECTOR LOGIC
-     ******************************************************************************/
+     *******************************************************************************/
     let trialHistory = [];
     let sortOrder = 1;
     function loadAppData() {
@@ -1186,7 +1183,7 @@
 
     /*******************************************************************************
      *   SIMPLE EDIT MODAL
-     ******************************************************************************/
+     *******************************************************************************/
     const simpleEditModal = document.getElementById('simpleEditModal');
     const closeSimpleEditModal = document.getElementById('closeSimpleEditModal');
     const simpleEditForm = document.getElementById('simpleEditForm');
@@ -1495,7 +1492,7 @@
 
     /*******************************************************************************
      *   PROGRAM BUILDER LOGIC
-     ******************************************************************************/
+     *******************************************************************************/
     let programLibrary;
     if (localStorage.getItem('abaLibrary')) {
       programLibrary = JSON.parse(localStorage.getItem('abaLibrary'));
@@ -1513,8 +1510,6 @@
     let builderSelections = [];
     let builderEditingProgram = null;
     const programBuilderSection = document.getElementById('programBuilderSection');
-    // Note: The "toggleProgramBuilderBtn" button has been removed from Manage Data.
-    // The Program Builder is now accessed via the menu.
     function cancelProgramBuilder() {
       builderChildName = "";
       builderSelectedDomain = "";
@@ -1522,10 +1517,14 @@
       builderEditingProgram = null;
       updateBuilderSummary();
       checkFinishButtonVisibility();
+      document.getElementById('builderChildName').value = "";
+      document.getElementById('builderDomainSelect').value = "";
       document.getElementById('builderStep1').classList.remove('hidden');
       document.getElementById('builderStep2').classList.add('hidden');
       document.getElementById('builderStep3').classList.add('hidden');
       document.getElementById('programBuilderPage').style.display = 'none';
+      // Navigate back to Data Collector page
+      document.getElementById('dataCollectorPage').style.display = 'block';
     }
     document.getElementById('builderCancelAllBtn1').addEventListener('click', cancelProgramBuilder);
     document.getElementById('builderCancelAllBtn2').addEventListener('click', cancelProgramBuilder);
@@ -1655,6 +1654,7 @@
         addBtn.textContent = "Save Domain";
       }
     }
+    // Modified function to display SD and add inline new target form
     function populateProgramsAndTargets(dom) {
       const container = document.getElementById('programsContainer');
       container.innerHTML = "";
@@ -1694,15 +1694,67 @@
           cb.type = 'checkbox';
           cb.className = 'targetCheckbox';
           cb.value = t;
+          // If editing, check if the target is selected
           if (builderEditingProgram && builderEditingProgram.program === prg) {
-            if (builderEditingProgram.targets.includes(t)) {
+            if (builderEditingProgram.targets.some(item => (typeof item === 'object' ? item.target === t : item === t))) {
               cb.checked = true;
             }
           }
           cb.addEventListener('change', () => updateProgStatus(progDiv));
           lbl.appendChild(cb);
           lbl.appendChild(document.createTextNode(" " + t));
+          // Display SD associated with target
+          const record = programLibrary.find(r => r.domain === dom && r.program === prg && r.target === t);
+          const sdSpan = document.createElement('span');
+          sdSpan.style.fontSize = '0.8em';
+          sdSpan.style.color = 'gray';
+          sdSpan.textContent = record ? ` (SD: ${record.SD})` : '';
+          lbl.appendChild(sdSpan);
           targDiv.appendChild(lbl);
+        });
+        // Inline form to add a new target and its SD
+        const addNewDiv = document.createElement('div');
+        addNewDiv.style.marginTop = '5px';
+        addNewDiv.innerHTML = `
+          <input type="text" placeholder="New target" class="newTargetInput" style="width:40%; font-size:0.9em;"/>
+          <input type="text" placeholder="SD for new target" class="newSDInput" style="width:40%; font-size:0.9em; margin-left:5px;"/>
+          <button type="button" class="addNewTargetBtn" style="font-size:0.9em; margin-left:5px;">Add</button>
+        `;
+        targDiv.appendChild(addNewDiv);
+        // Event listener for new target addition
+        const addNewTargetBtn = addNewDiv.querySelector('.addNewTargetBtn');
+        addNewTargetBtn.addEventListener('click', () => {
+          const newTargetInput = addNewDiv.querySelector('.newTargetInput');
+          const newSDInput = addNewDiv.querySelector('.newSDInput');
+          const newTarget = newTargetInput.value.trim();
+          const newSD = newSDInput.value.trim();
+          if (!newTarget || !newSD) {
+            alert("Please fill in both the target name and its SD.");
+            return;
+          }
+          // Create new target checkbox
+          const lblNew = document.createElement('label');
+          lblNew.style.display = 'block';
+          const cbNew = document.createElement('input');
+          cbNew.type = 'checkbox';
+          cbNew.className = 'targetCheckbox';
+          cbNew.value = newTarget;
+          cbNew.checked = true;
+          cbNew.dataset.sd = newSD; // store custom SD
+          cbNew.addEventListener('change', () => updateProgStatus(progDiv));
+          lblNew.appendChild(cbNew);
+          lblNew.appendChild(document.createTextNode(" " + newTarget));
+          const sdSpanNew = document.createElement('span');
+          sdSpanNew.style.fontSize = '0.8em';
+          sdSpanNew.style.color = 'gray';
+          sdSpanNew.textContent = ` (SD: ${newSD})`;
+          lblNew.appendChild(sdSpanNew);
+          // Insert new label before the addNewDiv
+          targDiv.insertBefore(lblNew, addNewDiv);
+          // Clear input fields
+          newTargetInput.value = "";
+          newSDInput.value = "";
+          updateProgStatus(progDiv);
         });
         progDiv.appendChild(targDiv);
         toggleBtn.addEventListener('click', () => {
@@ -1748,7 +1800,13 @@
       }
       updateBuilderSummary();
       checkFinishButtonVisibility();
+      // Reset for new domain selection:
+      builderSelectedDomain = "";
+      document.getElementById('builderStep3').classList.add('hidden');
+      document.getElementById('builderStep2').classList.remove('hidden');
+      document.getElementById('builderDomainSelect').value = "";
     });
+    // Modified to gather target as objects with target and sd
     function gatherCurrentDomainSelection() {
       const c = document.getElementById('programsContainer');
       const items = c.querySelectorAll('.programItem');
@@ -1759,7 +1817,9 @@
         const cbs = item.querySelectorAll('.targetCheckbox:checked');
         if (cbs.length > 0) {
           anySelected = true;
-          const targets = Array.from(cbs).map(cb => cb.value);
+          const targets = Array.from(cbs).map(cb => {
+            return { target: cb.value, sd: cb.dataset.sd ? cb.dataset.sd : null };
+          });
           domObj.programs.push({ program: pName, targets });
         }
       });
@@ -1768,26 +1828,6 @@
         return null;
       }
       return domObj;
-    }
-    function editProgramFromSummary(dIndex, pIndex) {
-      const domEntry = builderSelections[dIndex];
-      const progEntry = domEntry.programs[pIndex];
-      domEntry.programs.splice(pIndex, 1);
-      if (!domEntry.programs.length) {
-        builderSelections.splice(dIndex, 1);
-      }
-      updateBuilderSummary();
-      builderEditingProgram = {
-        domain: domEntry.domain,
-        program: progEntry.program,
-        targets: progEntry.targets
-      };
-      builderSelectedDomain = domEntry.domain;
-      document.getElementById('builderStep2').classList.add('hidden');
-      document.getElementById('builderStep3').classList.remove('hidden');
-      document.getElementById('builderCurrentDomainLabel').textContent = domEntry.domain;
-      updateBuilderStep3Buttons();
-      populateProgramsAndTargets(domEntry.domain);
     }
     function checkFinishButtonVisibility() {
       const finishBtn = document.getElementById('builderFinishBtn');
@@ -1811,30 +1851,44 @@
           if (!appData[builderChildName][domain][pr.program]) {
             appData[builderChildName][domain][pr.program] = {};
           }
-          pr.targets.forEach(t => {
-            const row = programLibrary.find(r =>
-              r.domain === domSel.domain && r.program === pr.program && r.target === t
-            );
-            const sdVal = row ? row.SD : "(No SD found)";
-            appData[builderChildName][domain][pr.program][t] = { sd: sdVal, note: "", active: true };
+          pr.targets.forEach(tObj => {
+            const targetName = tObj.target;
+            let sdVal = tObj.sd;
+            if (!sdVal) {
+              const row = programLibrary.find(r =>
+                r.domain === domSel.domain && r.program === pr.program && r.target === targetName
+              );
+              sdVal = row ? row.SD : "(No SD found)";
+            }
+            appData[builderChildName][domain][pr.program][targetName] = { sd: sdVal, note: "", active: true };
           });
         });
       });
       saveAppData();
       alert("Program data added for child: " + builderChildName);
+      // Reset builder state for next usage
       builderSelections = [];
       builderChildName = "";
       builderSelectedDomain = "";
       builderEditingProgram = null;
       updateBuilderSummary();
       checkFinishButtonVisibility();
+      // Clear builder input fields
+      document.getElementById('builderChildName').value = "";
+      document.getElementById('builderDomainSelect').value = "";
+      document.getElementById('builderStep1').classList.remove('hidden');
+      document.getElementById('builderStep2').classList.add('hidden');
+      document.getElementById('builderStep3').classList.add('hidden');
+      // Hide Program Builder and navigate back to Data Collector page
+      document.getElementById('programBuilderPage').style.display = 'none';
+      document.getElementById('dataCollectorPage').style.display = 'block';
+      // Refresh the dropdowns
       populateChildNames();
       updateContentAreas();
       updateProgramSelect();
       updateTargetSelect();
       updateInstructions();
       updatePriorResults();
-      document.getElementById('programBuilderPage').style.display = 'none';
     });
   </script>
 </body>
