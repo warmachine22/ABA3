@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ABA Data Collector + Program Builder (with Cancel at Each Step)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Google Font (Optional) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* NEW: Navigation menu styling */
+    #mainMenu {
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 0.5rem 1rem;
+    }
+    #mainMenu ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 1rem;
+    }
+    #mainMenu ul li {
+      display: inline;
+    }
+    #mainMenu ul li a {
+      text-decoration: none;
+      color: #0288d1;
+      font-weight: 500;
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    #mainMenu ul li a.active {
+      border-bottom: 2px solid #0288d1;
+    }
+    @media (max-width: 600px) {
+      #mainMenu ul {
+        flex-direction: column;
+      }
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+
+    /* ====== HEADER ====== */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      padding: 0.5rem 1rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .app-header img {
+      height: 40px;
+      margin-right: 1rem;
+    }
+    .app-header h1 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin: 0;
+      color: #333;
+    }
+
+    /* ====== MAIN DATA COLLECTOR UI ====== */
+    .container {
+      max-width: 800px;
+      margin: 1rem auto;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .child-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    select, input[type="text"], textarea {
+      font-family: 'Roboto', sans-serif;
+    }
+    .dropdown-btn {
+      min-width: 130px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.8rem;
+      white-space: nowrap;
+    }
+    #childNameSelect {
+      flex: 1;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .locked {
+      background-color: #f44336; /* red */
+      color: #fff;
+    }
+    .unlocked {
+      background-color: #4caf50; /* green */
+      color: #fff;
+    }
+
+    /* ====== FULL WIDTH TOP SECTION ====== */
+    #topSection {
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
+      width: 100vw;
+      background: #fff;
+      padding: 1rem 0;
+      margin-bottom: 1rem;
+    }
+    #topSection .dropdowns {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    .dropdown-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    /* Force the selects to be wide */
+    .dropdown-row select {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    .instructions {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+    .desc-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      justify-content: flex-end;
+    }
+    .desc-buttons button {
+      background: #0288d1;
+      color: #fff;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .desc-buttons button:hover {
+      background: #0277bd;
+    }
+    .instructions label {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: #555;
+    }
+    .instructions textarea {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+
+    /* Trial Results */
+    .trial-results {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+    .trial-results .column {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .trial-results label {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .trial-results input[type="radio"] {
+      margin-right: 0.5rem;
+      transform: scale(1.2);
+    }
+    label.incorrect { background-color: #ffebee; }
+    label.independent { background-color: #e8f5e9; }
+    label.verbal,
+    label.prompted,
+    label.modeling,
+    label.gestural,
+    label.partialPhysical,
+    label.fullPhysical {
+      background-color: #fffde7;
+    }
+
+    /* Prior Results */
+    .prior-results {
+      margin-bottom: 1rem;
+    }
+    .prior-results h2 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+    .prior-list {
+      list-style: none;
+      padding: 0;
+    }
+    .prior-list li {
+      margin-bottom: 0.5rem;
+      padding: 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .independent { background-color: #e8f5e9; }
+    .incorrect   { background-color: #ffebee; }
+    .verbal,
+    .prompted,
+    .modeling,
+    .gestural,
+    .partial-physical,
+    .full-physical {
+      background-color: #fffde7;
+    }
+
+    /* ====== MANAGE DATA SECTION ====== */
+    #dataManagementSection {
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
+      width: 100vw;
+      background: #f3f3f3;
+      padding: 2rem 0;
+    }
+    #dataManagementSection hr {
+      margin-bottom: 1rem;
+      width: 80%;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+    #dataManagementSection h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 500;
+      color: #333;
+      font-size: 1.2rem;
+    }
+    .data-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    #toggleDataTableBtn,
+    #addNewRecordBtn,
+    #importProgramBtn,
+    #exportTrialDataBtn,
+    #resetDataBtn,
+    #toggleProgramBuilderBtn {
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    #toggleDataTableBtn { background: #0288d1; }
+    #toggleDataTableBtn:hover { background: #0277bd; }
+    #addNewRecordBtn { background: #00796b; }
+    #addNewRecordBtn:hover { background: #00695c; }
+    #importProgramBtn { background: #8e24aa; }
+    #importProgramBtn:hover { background: #7b1fa2; }
+    #exportTrialDataBtn { background: #ff9800; }
+    #exportTrialDataBtn:hover { background: #fb8c00; }
+    #resetDataBtn { background: #d32f2f; }
+    #resetDataBtn:hover { background: #c62828; }
+    #toggleProgramBuilderBtn { background: #007bff; }
+    #toggleProgramBuilderBtn:hover { background: #0056b3; }
+
+    #dataTableContainer {
+      overflow-x: auto;
+      padding: 0 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    #dataTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+      background: #fff;
+    }
+    #dataTable th, #dataTable td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    #dataTable th {
+      background-color: #f2f2f2;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    #dataTable thead tr.filterRow input {
+      width: 90%;
+      padding: 0.2rem;
+      font-size: 0.85rem;
+    }
+    .activeCheckbox {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .tableEditBtn {
+      padding: 0.3rem 0.5rem;
+      background: #0288d1;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .tableEditBtn:hover {
+      background: #0277bd;
+    }
+
+    /* ====== MODAL (IMPROVED LAYOUT) ====== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      float: right;
+      cursor: pointer;
+    }
+    .close:hover, .close:focus {
+      color: #000;
+      text-decoration: none;
+    }
+    #simpleModalTitle {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+    /* The form in the modal: stack items vertically */
+    #simpleEditForm {
+      display: flex;
+      flex-direction: column;
+    }
+    #simpleEditForm label {
+      font-weight: 500;
+      color: #333;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    #simpleEditForm input[type="text"],
+    #simpleEditForm textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+    #simpleEditForm textarea {
+      resize: vertical;
+    }
+    .checkbox-row {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    /* Buttons at bottom of the form */
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    #simpleSaveEditBtn,
+    #simpleCancelEditBtn {
+      background-color: #0288d1;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    #simpleSaveEditBtn:hover,
+    #simpleCancelEditBtn:hover {
+      background-color: #0277bd;
+    }
+    /* Cancel button distinct color (optional) */
+    #simpleCancelEditBtn {
+      background-color: #757575;
+    }
+    #simpleCancelEditBtn:hover {
+      background-color: #616161;
+    }
+    @media (max-width: 600px) {
+      .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 1rem;
+      }
+      #simpleEditForm label {
+        margin-top: 0.75rem;
+      }
+    }
+
+    /* ====== PROGRAM BUILDER SECTION ====== */
+    #programBuilderSection {
+      max-width: 800px;
+      margin: 1rem auto;
+      padding: 1rem;
+      background-color: #f4f6f8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #programBuilderSection h2 {
+      margin-bottom: 1rem;
+    }
+    .builder-step {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .builder-step input[type="text"],
+    .builder-step select {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .builder-step button {
+      padding: 8px 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      background-color: #007bff;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+    .builder-step button:hover {
+      background-color: #0056b3;
+    }
+    #libraryImportSection {
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    #programsContainer .programItem {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .programHeader {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .toggleTargetsBtn {
+      background: none;
+      border: 1px solid #007bff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #007bff;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .toggleTargetsBtn:hover {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .programLabel {
+      font-weight: bold;
+    }
+    .programStatus {
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #fff;
+    }
+    .programStatus.active {
+      background-color: #28a745; /* green */
+    }
+    .programStatus.inactive {
+      background-color: #dc3545; /* red */
+    }
+    .targetsContainer {
+      margin-left: 30px;
+      margin-top: 8px;
+    }
+    .summaryDomain {
+      margin-bottom: 10px;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .summaryProgram {
+      margin-left: 20px;
+      padding: 3px 0;
+    }
+    .summaryProgram button {
+      background-color: #6c757d;
+      margin-left: 5px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    /* Additional step button rows for Cancel */
+    .builder-button-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 10px;
+    }
+    .builder-button-row button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="app-header">
+    <img
+      src="https://www.aeesei.com/uploads/1/2/6/7/126757502/capturelogo.png"
+      alt="AESEEI Logo"
+    />
+    <h1>ABA Data Collector + Program Builder</h1>
+  </div>
+
+  <!-- NEW: Navigation Menu -->
+  <nav id="mainMenu">
+    <ul>
+      <li><a href="#" data-page="dataCollectorPage" class="menuItem active">Data Collector</a></li>
+      <li><a href="#" data-page="manageDataPage" class="menuItem">Manage Data</a></li>
+      <li><a href="#" data-page="programBuilderPage" class="menuItem">Program Builder</a></li>
+    </ul>
+  </nav>
+
+  <!-- Pages Container -->
+  <!-- Data Collector Page -->
+  <section id="dataCollectorPage">
+    <!-- Main Data Collector UI -->
+    <div class="container">
+      <div class="child-row">
+        <input type="checkbox" id="lockChild" checked style="display:none"/>
+        <button id="childLockBtn" class="dropdown-btn locked">Child Name 🔒</button>
+        <select id="childNameSelect"></select>
+      </div>
+    </div>
+
+    <div id="topSection">
+      <div class="dropdowns">
+        <!-- Content Area -->
+        <div class="dropdown-row">
+          <input type="checkbox" id="lockContentArea" style="display:none"/>
+          <button id="contentAreaBtn" class="dropdown-btn unlocked">Content Area 🔓</button>
+          <select id="contentAreaSelect"></select>
+        </div>
+        <!-- Program -->
+        <div class="dropdown-row">
+          <input type="checkbox" id="lockProgram" style="display:none"/>
+          <button id="programBtn" class="dropdown-btn unlocked">Program 🔓</button>
+          <select id="programSelect"></select>
+        </div>
+        <!-- Target -->
+        <div class="dropdown-row">
+          <input type="checkbox" id="lockTarget" style="display:none"/>
+          <button id="targetBtn" class="dropdown-btn unlocked">Target 🔓</button>
+          <select id="targetSelect"></select>
+        </div>
+
+        <!-- SD / Notes -->
+        <div class="instructions">
+          <div class="desc-buttons">
+            <button id="selectRandomBtn">Select Random</button>
+          </div>
+          <label for="sdInput">SD (Instruction)</label>
+          <textarea id="sdInput" rows="2" readonly></textarea>
+          <label for="notesArea">Note</label>
+          <textarea id="notesArea" rows="2" readonly></textarea>
+        </div>
+
+        <!-- Trial Results -->
+        <div class="trial-results">
+          <div class="column">
+            <label class="incorrect">
+              <input type="radio" name="trialResult" value="incorrect" /> Incorrect
+            </label>
+            <label class="verbal">
+              <input type="radio" name="trialResult" value="verbal" /> Verbal
+            </label>
+            <label class="prompted">
+              <input type="radio" name="trialResult" value="prompted" /> Prompted
+            </label>
+            <label class="modeling">
+              <input type="radio" name="trialResult" value="modeling" /> Modeling
+            </label>
+          </div>
+          <div class="column">
+            <label class="independent">
+              <input type="radio" name="trialResult" value="independent" /> Independent
+            </label>
+            <label class="gestural">
+              <input type="radio" name="trialResult" value="gestural" /> Gestural
+            </label>
+            <label class="partialPhysical">
+              <input type="radio" name="trialResult" value="partialPhysical" /> Partial Physical
+            </label>
+            <label class="fullPhysical">
+              <input type="radio" name="trialResult" value="fullPhysical" /> Full Physical
+            </label>
+          </div>
+        </div>
+
+        <!-- Prior Results -->
+        <div class="prior-results">
+          <h2>Prior Results (Current Target)</h2>
+          <ul class="prior-list" id="priorList"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manage Data Page -->
+  <section id="manageDataPage" style="display: none;">
+    <div id="dataManagementSection">
+      <hr/>
+      <h2>Manage Data</h2>
+      <div class="data-buttons">
+        <button id="toggleDataTableBtn">Show Full Program</button>
+        <button id="addNewRecordBtn">Add New Record</button>
+        <button id="importProgramBtn">Import Program CSV</button>
+        <button id="exportTrialDataBtn">Export Trial Data CSV</button>
+        <button id="resetDataBtn">Reset Data</button>
+        <!-- The new button that toggles the Program Builder section -->
+        <button id="toggleProgramBuilderBtn">Add Child / Build Program</button>
+      </div>
+      <div id="dataTableContainer" style="display: none;">
+        <table id="dataTable"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Program Builder Page -->
+  <section id="programBuilderPage" style="display: none;">
+    <!-- PROGRAM BUILDER SECTION (Initially Hidden, now accessible via menu) -->
+    <div id="programBuilderSection" class="hidden">
+      <h2>Program Builder Wizard</h2>
+
+      <!-- Optional library import area -->
+      <div id="libraryImportSection">
+        <p>CSV header must be: <strong>domain, program, target, sd</strong></p>
+        <button id="builderImportLibraryBtn">Import/Update Library</button>
+        <input type="file" id="builderImportFile" accept=".csv" style="display:none">
+      </div>
+
+      <!-- Summary of selections so far -->
+      <div class="builder-step">
+        <h3>Program Summary</h3>
+        <div id="builderSummaryContent"><em>No selections yet.</em></div>
+      </div>
+
+      <!-- Step 1: Child's Name -->
+      <div id="builderStep1" class="builder-step">
+        <h3>Step 1: Enter Child's Name</h3>
+        <input type="text" id="builderChildName" placeholder="Child's Name">
+        <div class="builder-button-row">
+          <button id="builderCancelAllBtn1">Cancel</button>
+          <button id="builderNext1">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Select Domain -->
+      <div id="builderStep2" class="builder-step hidden">
+        <h3>Step 2: Select Domain</h3>
+        <select id="builderDomainSelect">
+          <option value="">-- Select Domain --</option>
+        </select>
+        <div class="builder-button-row">
+          <button id="builderCancelAllBtn2">Cancel</button>
+          <button id="builderNext2">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Pick Programs & Targets -->
+      <div id="builderStep3" class="builder-step hidden">
+        <h3>Step 3: Select Programs & Targets for <span id="builderCurrentDomainLabel"></span></h3>
+        <div id="programsContainer"></div>
+        <div class="builder-button-row">
+          <button id="builderCancelAllBtn3">Cancel</button>
+          <button id="builderAddDomainBtn">Save Domain</button>
+        </div>
+      </div>
+
+      <!-- Final Finish Button -->
+      <div class="builder-button-row">
+        <button
+          id="builderFinishBtn"
+          class="hidden"
+          style="background-color: #28a745;"
+        >
+          Finish & Add to Main App
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- File Input for CSV import -->
+  <input type="file" id="csvFileInput" accept=".csv" style="display:none" />
+
+  <!-- Simple Edit Modal (IMPROVED LAYOUT) -->
+  <div id="simpleEditModal" class="modal">
+    <div class="modal-content">
+      <span id="closeSimpleEditModal" class="close">&times;</span>
+      <h2 id="simpleModalTitle">Edit Record</h2>
+
+      <form id="simpleEditForm">
+        <!-- Hidden fields -->
+        <input type="hidden" id="simpleEditMode" value="edit">
+        <input type="hidden" id="simpleOriginalChild" value="">
+        <input type="hidden" id="simpleOriginalArea" value="">
+        <input type="hidden" id="simpleOriginalProgram" value="">
+        <input type="hidden" id="simpleOriginalTarget" value="">
+
+        <label for="simpleEditChild">Child Name</label>
+        <input
+          type="text"
+          id="simpleEditChild"
+          list="childList"
+          required
+          placeholder="Enter or select child name..."
+        />
+
+        <label for="simpleEditContentArea">Content Area</label>
+        <input
+          type="text"
+          id="simpleEditContentArea"
+          list="contentAreaList"
+          required
+          placeholder="e.g., Math Skills"
+        />
+
+        <label for="simpleEditProgram">Program</label>
+        <input
+          type="text"
+          id="simpleEditProgram"
+          list="programList"
+          required
+          placeholder="e.g., Counting"
+        />
+
+        <label for="simpleEditTarget">Target</label>
+        <input
+          type="text"
+          id="simpleEditTarget"
+          list="targetList"
+          required
+          placeholder="e.g., Count to 5"
+        />
+
+        <label for="simpleEditSD">SD (Instruction)</label>
+        <textarea
+          id="simpleEditSD"
+          rows="2"
+          required
+          placeholder='e.g. "Count from 1 to 5"'
+        ></textarea>
+
+        <label for="simpleEditNote">Note</label>
+        <textarea
+          id="simpleEditNote"
+          rows="2"
+          required
+          placeholder="Additional notes or instructions..."
+        ></textarea>
+
+        <!-- Active checkbox -->
+        <div class="checkbox-row">
+          <label style="display: inline-flex; align-items: center; margin: 0;">
+            <input
+              type="checkbox"
+              id="simpleEditActive"
+              style="margin-right: 0.5rem;"
+            />
+            Active
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button type="submit" id="simpleSaveEditBtn">Save</button>
+          <button type="button" id="simpleCancelEditBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Datalists for the Simple Edit Modal -->
+  <datalist id="childList"></datalist>
+  <datalist id="contentAreaList"></datalist>
+  <datalist id="programList"></datalist>
+  <datalist id="targetList"></datalist>
+
+  <!-- ========================================================= -->
+  <!-- All Scripts (unchanged logic) -->
+  <!-- ========================================================= -->
+  <script>
+  /*******************************************************************************
+   *   PAGE NAVIGATION LOGIC
+   ******************************************************************************/
+  // Attach click listeners to menu items
+  document.querySelectorAll('#mainMenu a.menuItem').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.getAttribute('data-page');
+      // Hide all pages
+      document.getElementById('dataCollectorPage').style.display = 'none';
+      document.getElementById('manageDataPage').style.display = 'none';
+      document.getElementById('programBuilderPage').style.display = 'none';
+      // Remove active class from all menu items
+      document.querySelectorAll('#mainMenu a.menuItem').forEach(a => a.classList.remove('active'));
+      // Show the selected page and mark menu item as active
+      document.getElementById(page).style.display = 'block';
+      this.classList.add('active');
+      // If showing the Program Builder page, remove the "hidden" class
+      if(page === 'programBuilderPage'){
+        document.getElementById('programBuilderSection').classList.remove('hidden');
+      }
+    });
+  });
+
+  /*******************************************************************************
+   *   DATA COLLECTOR LOGIC
+   ******************************************************************************/ 
+  let trialHistory = [];
+  let sortOrder = 1;
+
+  function loadAppData() {
+    const stored = localStorage.getItem("appData");
+    if (stored) {
+      try { return JSON.parse(stored); }
+      catch(e) { console.error("Error parsing appData", e); }
+    }
+    return null;
+  }
+  function saveAppData() {
+    localStorage.setItem("appData", JSON.stringify(appData));
+  }
+  function getDefaultData() {
+    return {
+      "Test Child": {
+        "Math Skills": {
+          "Counting": {
+            "Count to 5": {
+              sd: "Count from 1 to 5",
+              note: "Encourage counting slowly",
+              active: true
+            }
+          }
+        }
+      }
+    };
+  }
+
+  let appData = loadAppData();
+  if (!appData || Object.keys(appData).length === 0) {
+    appData = getDefaultData();
+    saveAppData();
+  }
+
+  function childHasActiveRecords(childName) {
+    if (!appData[childName]) return false;
+    for (const area in appData[childName]) {
+      for (const program in appData[childName][area]) {
+        for (const target in appData[childName][area][program]) {
+          if (appData[childName][area][program][target].active) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // DOM references
+  const childNameSelect = document.getElementById("childNameSelect");
+  const contentAreaSelect = document.getElementById("contentAreaSelect");
+  const programSelect = document.getElementById("programSelect");
+  const targetSelect = document.getElementById("targetSelect");
+  const sdInput = document.getElementById("sdInput");
+  const notesArea = document.getElementById("notesArea");
+  const priorList = document.getElementById("priorList");
+
+  // Lock checkboxes + buttons
+  const lockChild = document.getElementById("lockChild");
+  const childLockBtn = document.getElementById("childLockBtn");
+  const lockContentArea = document.getElementById("lockContentArea");
+  const contentAreaBtn = document.getElementById("contentAreaBtn");
+  const lockProgram = document.getElementById("lockProgram");
+  const programBtn = document.getElementById("programBtn");
+  const lockTarget = document.getElementById("lockTarget");
+  const targetBtn = document.getElementById("targetBtn");
+
+  function populateChildNames() {
+    childNameSelect.innerHTML = "";
+    const validChildren = Object.keys(appData).filter(c => childHasActiveRecords(c));
+    validChildren.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      childNameSelect.appendChild(opt);
+    });
+    if (validChildren.length && !validChildren.includes(childNameSelect.value)) {
+      childNameSelect.value = validChildren[0];
+    }
+  }
+  populateChildNames();
+
+  function updateContentAreas() {
+    contentAreaSelect.innerHTML = "";
+    const selChild = childNameSelect.value;
+    if (appData[selChild]) {
+      Object.keys(appData[selChild]).forEach(area => {
+        const opt = document.createElement("option");
+        opt.value = area;
+        opt.textContent = area;
+        contentAreaSelect.appendChild(opt);
+      });
+    }
+  }
+  function updateProgramSelect() {
+    programSelect.innerHTML = "";
+    const selChild = childNameSelect.value;
+    const selArea = contentAreaSelect.value;
+    if (appData[selChild] && appData[selChild][selArea]) {
+      Object.keys(appData[selChild][selArea]).forEach(prog => {
+        const opt = document.createElement("option");
+        opt.value = prog;
+        opt.textContent = prog;
+        programSelect.appendChild(opt);
+      });
+    }
+  }
+  function updateTargetSelect() {
+    targetSelect.innerHTML = "";
+    const selChild = childNameSelect.value;
+    const selArea = contentAreaSelect.value;
+    const selProg = programSelect.value;
+    if (appData[selChild] && appData[selChild][selArea] && appData[selChild][selArea][selProg]) {
+      Object.keys(appData[selChild][selArea][selProg])
+        .filter(t => appData[selChild][selArea][selProg][t].active)
+        .forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          targetSelect.appendChild(opt);
+        });
+    }
+  }
+  function updateInstructions() {
+    const selChild = childNameSelect.value;
+    const selArea = contentAreaSelect.value;
+    const selProg = programSelect.value;
+    const selTarg = targetSelect.value;
+    if (appData[selChild] &&
+        appData[selChild][selArea] &&
+        appData[selChild][selArea][selProg] &&
+        appData[selChild][selArea][selProg][selTarg]) {
+      const rec = appData[selChild][selArea][selProg][selTarg];
+      sdInput.value = rec.sd;
+      notesArea.value = rec.note;
+    } else {
+      sdInput.value = "";
+      notesArea.value = "";
+    }
+  }
+  function updatePriorResults() {
+    const selChild = childNameSelect.value;
+    const selArea = contentAreaSelect.value;
+    const selProg = programSelect.value;
+    const selTarg = targetSelect.value;
+    const filtered = trialHistory.filter(r =>
+      r.child===selChild && r.contentArea===selArea && r.program===selProg && r.target===selTarg
+    );
+    const lastFive = filtered.slice(-5);
+    priorList.innerHTML = "";
+    for (let i=lastFive.length-1; i>=0; i--) {
+      const li = document.createElement("li");
+      const result = lastFive[i].result;
+      li.textContent = result.charAt(0).toUpperCase()+result.slice(1);
+      li.className = result;
+      priorList.appendChild(li);
+    }
+  }
+
+  // triggers on changes
+  childNameSelect.addEventListener('change', () => {
+    updateContentAreas();
+    updateProgramSelect();
+    updateTargetSelect();
+    updateInstructions();
+    updatePriorResults();
+  });
+  contentAreaSelect.addEventListener('change', () => {
+    updateProgramSelect();
+    updateTargetSelect();
+    updateInstructions();
+    updatePriorResults();
+  });
+  programSelect.addEventListener('change', () => {
+    updateTargetSelect();
+    updateInstructions();
+    updatePriorResults();
+  });
+  targetSelect.addEventListener('change', () => {
+    updateInstructions();
+    updatePriorResults();
+  });
+
+  updateContentAreas();
+  updateProgramSelect();
+  updateTargetSelect();
+  updateInstructions();
+  updatePriorResults();
+
+  // Lock/unlock logic
+  function setLockState(checkbox, btn, labelText) {
+    if (checkbox.checked) {
+      btn.textContent = labelText + " 🔒";
+      btn.classList.add("locked");
+      btn.classList.remove("unlocked");
+    } else {
+      btn.textContent = labelText + " 🔓";
+      btn.classList.add("unlocked");
+      btn.classList.remove("locked");
+    }
+  }
+  function toggleLock(checkbox, btn, labelText) {
+    checkbox.checked = !checkbox.checked;
+    setLockState(checkbox, btn, labelText);
+  }
+  childLockBtn.addEventListener('click', () => {
+    toggleLock(lockChild, childLockBtn, "Child Name");
+  });
+  contentAreaBtn.addEventListener('click', () => {
+    toggleLock(lockContentArea, contentAreaBtn, "Content Area");
+  });
+  programBtn.addEventListener('click', () => {
+    toggleLock(lockProgram, programBtn, "Program");
+  });
+  targetBtn.addEventListener('click', () => {
+    toggleLock(lockTarget, targetBtn, "Target");
+  });
+
+  setLockState(lockChild, childLockBtn, "Child Name");
+  setLockState(lockContentArea, contentAreaBtn, "Content Area");
+  setLockState(lockProgram, programBtn, "Program");
+  setLockState(lockTarget, targetBtn, "Target");
+
+  // Random selection
+  function randomizeTrialData() {
+    let rawLockChild = lockChild.checked;
+    let rawLockArea = lockContentArea.checked;
+    let rawLockProg = lockProgram.checked;
+    let rawLockTarg = lockTarget.checked;
+
+    let lockChildEff = rawLockChild || rawLockArea || rawLockProg || rawLockTarg;
+    let lockAreaEff = rawLockArea || rawLockProg || rawLockTarg;
+    let lockProgEff = rawLockProg || rawLockTarg;
+    let lockTargEff = rawLockTarg;
+
+    let c = childNameSelect.value;
+    let a = contentAreaSelect.value;
+    let p = programSelect.value;
+    let t = targetSelect.value;
+
+    if (!lockChildEff) {
+      const validKids = Object.keys(appData).filter(x => childHasActiveRecords(x));
+      if (validKids.length) {
+        c = validKids[Math.floor(Math.random()*validKids.length)];
+        childNameSelect.value = c;
+      }
+    }
+    if (!appData[c]) return;
+    let childData = appData[c];
+    const areaKeys = Object.keys(childData);
+    if (!lockAreaEff) {
+      if (areaKeys.length) {
+        a = areaKeys[Math.floor(Math.random()*areaKeys.length)];
+        contentAreaSelect.value = a;
+      }
+    } else {
+      if (!areaKeys.includes(a)) {
+        a = areaKeys[0];
+        contentAreaSelect.value = a;
+      }
+    }
+    updateProgramSelect();
+    const progKeys = Object.keys(childData[a]||{});
+    if (!lockProgEff) {
+      if (progKeys.length) {
+        p = progKeys[Math.floor(Math.random()*progKeys.length)];
+        programSelect.value = p;
+      }
+    } else {
+      if (!progKeys.includes(p)) {
+        p = progKeys[0];
+        programSelect.value = p;
+      }
+    }
+    updateTargetSelect();
+    const targKeys = Object.keys(childData[a][p]||{}).filter(xx=>childData[a][p][xx].active);
+    if (!lockTargEff) {
+      if (targKeys.length) {
+        t = targKeys[Math.floor(Math.random()*targKeys.length)];
+        targetSelect.value = t;
+      }
+    } else {
+      if (!targKeys.includes(t)) {
+        t = targKeys[0];
+        targetSelect.value = t;
+      }
+    }
+    updateInstructions();
+    updatePriorResults();
+  }
+  document.getElementById('selectRandomBtn').addEventListener('click', randomizeTrialData);
+
+  // Trial recording
+  function recordTrial(result) {
+    alert("Trial data recorded: " + result);
+    trialHistory.push({
+      child: childNameSelect.value,
+      contentArea: contentAreaSelect.value,
+      program: programSelect.value,
+      target: targetSelect.value,
+      result,
+      timestamp: new Date().toISOString()
+    });
+    updatePriorResults();
+    randomizeTrialData();
+    document.querySelectorAll('input[name="trialResult"]').forEach(r=>r.checked=false);
+  }
+  document.querySelectorAll('input[name="trialResult"]').forEach(radio=>{
+    radio.addEventListener('change', e=>recordTrial(e.target.value));
+  });
+
+  // Import Program CSV
+  const importProgramBtn = document.getElementById('importProgramBtn');
+  const csvFileInput = document.getElementById('csvFileInput');
+  importProgramBtn.addEventListener('click', ()=>csvFileInput.click());
+  csvFileInput.addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const rdr = new FileReader();
+    rdr.onload = ev=>{
+      parseCSVImport(ev.target.result);
+      csvFileInput.value="";
+    };
+    rdr.readAsText(file);
+  });
+  function parseCSVImport(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    if (lines.length<2) return alert("CSV file appears empty.");
+    const header = lines[0].split(",").map(h=>h.trim().toLowerCase());
+    const expected = ["child","content area","program","target","sd","note","active"];
+    if (header.join()!==expected.join()) {
+      return alert("CSV header mismatch. Expected: "+expected.join(", "));
+    }
+    for(let i=1;i<lines.length;i++){
+      const line = lines[i].trim();
+      if(!line) continue;
+      const fields = line.split(",").map(f=>f.trim());
+      if(fields.length<7) continue;
+      const [child, area, program, target, sd, note, activeStr] = fields;
+      const active = (activeStr.toLowerCase()==="true"||activeStr==="1");
+      if(!appData[child]) appData[child]={};
+      if(!appData[child][area]) appData[child][area]={};
+      if(!appData[child][area][program]) appData[child][area][program]={};
+      appData[child][area][program][target]={ sd, note, active };
+    }
+    saveAppData();
+    populateChildNames();
+    updateContentAreas();
+    updateProgramSelect();
+    updateTargetSelect();
+    updateInstructions();
+    updatePriorResults();
+    alert("CSV import successful.");
+  }
+
+  // Export Trial Data CSV
+  const exportTrialDataBtn = document.getElementById("exportTrialDataBtn");
+  exportTrialDataBtn.addEventListener("click", exportTrialData);
+  function exportTrialData(){
+    if(!trialHistory.length) {
+      alert("No trial data to export.");
+      return;
+    }
+    let header=["Child","Content Area","Program","Target","Result","Timestamp"];
+    let csv=header.join(",")+"\n";
+    trialHistory.forEach(r=>{
+      let row=[r.child,r.contentArea,r.program,r.target,r.result,r.timestamp];
+      csv += row.map(xx=>`"${xx}"`).join(",")+"\n";
+    });
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;
+    link.download="trial_data.csv";
+    link.style.display="none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  // Simple Edit Modal
+  const simpleEditModal = document.getElementById('simpleEditModal');
+  const closeSimpleEditModal = document.getElementById('closeSimpleEditModal');
+  const simpleEditForm = document.getElementById('simpleEditForm');
+
+  function updateChildDatalist() {
+    const d = document.getElementById('childList');
+    d.innerHTML="";
+    Object.keys(appData).forEach(k=>{
+      let opt=document.createElement('option');
+      opt.value=k;
+      d.appendChild(opt);
+    });
+  }
+  function updateContentAreaDatalist() {
+    const d = document.getElementById('contentAreaList');
+    d.innerHTML="";
+    const cval=document.getElementById('simpleEditChild').value;
+    if(appData[cval]) {
+      Object.keys(appData[cval]).forEach(area=>{
+        let opt=document.createElement('option');
+        opt.value=area;
+        d.appendChild(opt);
+      });
+    }
+  }
+  function updateProgramDatalist() {
+    const d=document.getElementById('programList');
+    d.innerHTML="";
+    const cval=document.getElementById('simpleEditChild').value;
+    const aval=document.getElementById('simpleEditContentArea').value;
+    if(appData[cval] && appData[cval][aval]) {
+      Object.keys(appData[cval][aval]).forEach(p=>{
+        let opt=document.createElement('option');
+        opt.value=p;
+        d.appendChild(opt);
+      });
+    }
+  }
+  function updateTargetDatalist() {
+    const d=document.getElementById('targetList');
+    d.innerHTML="";
+    const cval=document.getElementById('simpleEditChild').value;
+    const aval=document.getElementById('simpleEditContentArea').value;
+    const pval=document.getElementById('simpleEditProgram').value;
+    if(appData[cval]&&appData[cval][aval]&&appData[cval][aval][pval]) {
+      Object.keys(appData[cval][aval][pval]).forEach(t=>{
+        let opt=document.createElement('option');
+        opt.value=t;
+        d.appendChild(opt);
+      });
+    }
+  }
+  document.getElementById('simpleEditChild').addEventListener('input',updateContentAreaDatalist);
+  document.getElementById('simpleEditContentArea').addEventListener('input',updateProgramDatalist);
+  document.getElementById('simpleEditProgram').addEventListener('input',updateTargetDatalist);
+
+  function openSimpleEditModal(data, mode) {
+    document.getElementById('simpleEditMode').value=mode;
+    if(mode==="edit"){
+      document.getElementById('simpleModalTitle').textContent="Edit Record";
+      document.getElementById('simpleEditChild').value=data.child||"";
+      document.getElementById('simpleEditContentArea').value=data.area||"";
+      document.getElementById('simpleEditProgram').value=data.program||"";
+      document.getElementById('simpleEditTarget').value=data.target||"";
+      document.getElementById('simpleEditSD').value=data.sd||"";
+      document.getElementById('simpleEditNote').value=data.note||"";
+      document.getElementById('simpleEditActive').checked=(data.active===false?false:true);
+      document.getElementById('simpleOriginalChild').value=data.child||"";
+      document.getElementById('simpleOriginalArea').value=data.area||"";
+      document.getElementById('simpleOriginalProgram').value=data.program||"";
+      document.getElementById('simpleOriginalTarget').value=data.target||"";
+    } else {
+      document.getElementById('simpleModalTitle').textContent="Add New Record";
+      document.getElementById('simpleEditChild').value=childNameSelect.value;
+      document.getElementById('simpleEditContentArea').value="";
+      document.getElementById('simpleEditProgram').value="";
+      document.getElementById('simpleEditTarget').value="";
+      document.getElementById('simpleEditSD').value="";
+      document.getElementById('simpleEditNote').value="";
+      document.getElementById('simpleEditActive').checked=false;
+      document.getElementById('simpleOriginalChild').value="";
+      document.getElementById('simpleOriginalArea').value="";
+      document.getElementById('simpleOriginalProgram').value="";
+      document.getElementById('simpleOriginalTarget').value="";
+    }
+    updateChildDatalist();
+    updateContentAreaDatalist();
+    updateProgramDatalist();
+    updateTargetDatalist();
+    simpleEditModal.style.display="block";
+  }
+  function closeSimpleEditModalFunc(){
+    simpleEditModal.style.display="none";
+  }
+  closeSimpleEditModal.addEventListener('click', closeSimpleEditModalFunc);
+  document.getElementById('simpleCancelEditBtn').addEventListener('click', closeSimpleEditModalFunc);
+
+  simpleEditForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const mode=document.getElementById('simpleEditMode').value;
+    const newChild=document.getElementById('simpleEditChild').value.trim();
+    const newArea=document.getElementById('simpleEditContentArea').value.trim();
+    const newProg=document.getElementById('simpleEditProgram').value.trim();
+    const newTarg=document.getElementById('simpleEditTarget').value.trim();
+    const newSD=document.getElementById('simpleEditSD').value.trim();
+    const newNote=document.getElementById('simpleEditNote').value.trim();
+    const newActive=document.getElementById('simpleEditActive').checked;
+    if(!newChild||!newArea||!newProg||!newTarg||!newSD||!newNote){
+      alert("All fields are required.");
+      return;
+    }
+    if(mode==="edit"){
+      const oc=document.getElementById('simpleOriginalChild').value;
+      const oa=document.getElementById('simpleOriginalArea').value;
+      const op=document.getElementById('simpleOriginalProgram').value;
+      const ot=document.getElementById('simpleOriginalTarget').value;
+      if(oc && oa && op && ot){
+        delete appData[oc][oa][op][ot];
+        if(!Object.keys(appData[oc][oa][op]).length){
+          delete appData[oc][oa][op];
+          if(!Object.keys(appData[oc][oa]).length){
+            delete appData[oc][oa];
+            if(!Object.keys(appData[oc]).length){
+              delete appData[oc];
+            }
+          }
+        }
+      }
+    }
+    if(!appData[newChild]) appData[newChild]={};
+    if(!appData[newChild][newArea]) appData[newChild][newArea]={};
+    if(!appData[newChild][newArea][newProg]) appData[newChild][newArea][newProg]={};
+    if(mode==="add" && appData[newChild][newArea][newProg][newTarg]){
+      if(!confirm("Target already exists. Overwrite?"))return;
+    }
+    appData[newChild][newArea][newProg][newTarg]={
+      sd:newSD,
+      note:newNote,
+      active:newActive
+    };
+    closeSimpleEditModalFunc();
+    buildDataTable();
+    saveAppData();
+  });
+
+  document.getElementById('addNewRecordBtn').addEventListener('click', ()=>{ openSimpleEditModal({}, "add"); });
+
+  // Build data table
+  const dataTable=document.getElementById('dataTable');
+  function buildDataTable(){
+    let rows=[];
+    Object.keys(appData).forEach(child=>{
+      Object.keys(appData[child]).forEach(area=>{
+        Object.keys(appData[child][area]).forEach(prog=>{
+          Object.keys(appData[child][area][prog]).forEach(targ=>{
+            const rec=appData[child][area][prog][targ];
+            rows.push({
+              child,
+              contentArea:area,
+              program:prog,
+              target:targ,
+              sd:rec.sd,
+              note:rec.note,
+              active:rec.active
+            });
+          });
+        });
+      });
+    });
+
+    const cols=["Child","Active","Content Area","Program","Target","SD","Note","Action"];
+    let thead="<thead><tr>";
+    cols.forEach((c,i)=>{
+      if(c!=="Action"){
+        thead+=`<th data-col="${i}" class="sortable">${c}</th>`;
+      } else {
+        thead+=`<th>${c}</th>`;
+      }
+    });
+    thead+="</tr>";
+    // Filter row
+    thead+="<tr class='filterRow'>";
+    cols.forEach((c,i)=>{
+      if(c==="Active"||c==="Action"){
+        thead+="<th></th>";
+      } else {
+        thead+=`<th><input type="text" data-col="${i}" placeholder="Filter ${c}"/></th>`;
+      }
+    });
+    thead+="</tr></thead>";
+
+    let tbody="<tbody>";
+    rows.forEach(r=>{
+      tbody+="<tr>";
+      tbody+=`<td>${r.child}</td>`;
+      tbody+=`<td style="text-align:center"><input type="checkbox" class="activeCheckbox"
+        data-child="${r.child}" data-contentArea="${r.contentArea}"
+        data-program="${r.program}" data-target="${r.target}"
+        ${r.active?"checked":""}/></td>`;
+      tbody+=`<td>${r.contentArea}</td>`;
+      tbody+=`<td>${r.program}</td>`;
+      tbody+=`<td>${r.target}</td>`;
+      tbody+=`<td>${r.sd}</td>`;
+      tbody+=`<td>${r.note}</td>`;
+      tbody+=`<td><button class="tableEditBtn"
+        data-child="${r.child}" data-contentArea="${r.contentArea}"
+        data-program="${r.program}" data-target="${r.target}">Edit</button></td>`;
+      tbody+="</tr>";
+    });
+    tbody+="</tbody>";
+
+    dataTable.innerHTML=thead+tbody;
+    const sortables=dataTable.querySelectorAll("th.sortable");
+    sortables.forEach(header=>{
+      header.addEventListener('click',()=>{
+        const colIndex=header.getAttribute("data-col");
+        sortTable(colIndex);
+      });
+    });
+    const filters=dataTable.querySelectorAll("thead tr.filterRow input");
+    filters.forEach(f=>{
+      f.addEventListener('keyup',filterTable);
+    });
+    const editBtns=dataTable.querySelectorAll(".tableEditBtn");
+    editBtns.forEach(btn=>{
+      btn.addEventListener('click',function(){
+        const c=btn.getAttribute("data-child");
+        const a=btn.getAttribute("data-contentArea");
+        const p=btn.getAttribute("data-program");
+        const t=btn.getAttribute("data-target");
+        const rec=appData[c][a][p][t];
+        openSimpleEditModal({
+          child:c, area:a, program:p, target:t,
+          sd:rec.sd, note:rec.note, active:rec.active
+        },"edit");
+      });
+    });
+    const checkboxes=dataTable.querySelectorAll(".activeCheckbox");
+    checkboxes.forEach(chk=>{
+      chk.addEventListener('change',function(){
+        const c=chk.getAttribute("data-child");
+        const a=chk.getAttribute("data-contentArea");
+        const p=chk.getAttribute("data-program");
+        const t=chk.getAttribute("data-target");
+        appData[c][a][p][t].active=chk.checked;
+        saveAppData();
+        updateTargetSelect();
+        updateInstructions();
+        updatePriorResults();
+      });
+    });
+  }
+  function filterTable(){
+    const filters={};
+    const inputs=dataTable.querySelectorAll("thead tr.filterRow input");
+    inputs.forEach(i=>{
+      filters[parseInt(i.getAttribute("data-col"),10)] = i.value.toLowerCase();
+    });
+    const rows=dataTable.querySelector("tbody").querySelectorAll("tr");
+    rows.forEach(r=>{
+      let show=true;
+      for(const [colIndexStr,filVal] of Object.entries(filters)){
+        if(!filVal.trim()) continue;
+        const colIndex=parseInt(colIndexStr,10);
+        const cellText=r.children[colIndex].textContent.toLowerCase();
+        if(!cellText.includes(filVal)){
+          show=false;
+          break;
+        }
+      }
+      r.style.display= show?"":"none";
+    });
+  }
+  function sortTable(colIndex){
+    const tbody=dataTable.querySelector("tbody");
+    let rowArr=Array.from(tbody.querySelectorAll("tr"));
+    rowArr.sort((a,b)=>{
+      const aText=a.children[colIndex].textContent.toLowerCase();
+      const bText=b.children[colIndex].textContent.toLowerCase();
+      if(aText<bText)return -1*sortOrder;
+      if(aText>bText)return 1*sortOrder;
+      return 0;
+    });
+    sortOrder*=-1;
+    rowArr.forEach(rr=>tbody.appendChild(rr));
+  }
+
+  document.getElementById('toggleDataTableBtn').addEventListener('click',function(){
+    const cont=document.getElementById('dataTableContainer');
+    if(cont.style.display==="none"||!cont.style.display){
+      cont.style.display="block";
+      this.textContent="Hide Full Program";
+      buildDataTable();
+    } else {
+      cont.style.display="none";
+      this.textContent="Show Full Program";
+    }
+  });
+
+  // Reset
+  document.getElementById('resetDataBtn').addEventListener('click',()=>{
+    if(confirm("Reset all data to default?")){
+      appData = getDefaultData();
+      saveAppData();
+      populateChildNames();
+      updateContentAreas();
+      updateProgramSelect();
+      updateTargetSelect();
+      updateInstructions();
+      updatePriorResults();
+      alert("Data has been reset.");
+      if(document.getElementById('dataTableContainer').style.display!=="none"){
+        buildDataTable();
+      }
+    }
+  });
+
+  /*******************************************************************************
+   *   PROGRAM BUILDER LOGIC
+   ******************************************************************************/ 
+  let programLibrary;
+  if(localStorage.getItem('abaLibrary')){
+    programLibrary=JSON.parse(localStorage.getItem('abaLibrary'));
+  } else {
+    // sample library
+    programLibrary=[
+      {domain:'Social',program:'Program A',target:'Target 1',SD:'SD A1'},
+      {domain:'Social',program:'Program A',target:'Target 2',SD:'SD A2'},
+      {domain:'Social',program:'Program B',target:'Target 3',SD:'SD B1'},
+      {domain:'Cognitive',program:'Program C',target:'Target 4',SD:'SD C1'}
+    ];
+    localStorage.setItem('abaLibrary', JSON.stringify(programLibrary));
+  }
+
+  let builderChildName="";
+  let builderSelectedDomain="";
+  let builderSelections=[]; // array of { domain, programs: [{program, targets:[]}] }
+  let builderEditingProgram=null;
+
+  // show/hide program builder is now handled by the menu
+  const programBuilderSection=document.getElementById('programBuilderSection');
+  const toggleProgramBuilderBtn=document.getElementById('toggleProgramBuilderBtn');
+  toggleProgramBuilderBtn.addEventListener('click',()=>{
+    // In this revised version the Program Builder is now a separate page via the menu.
+    // You may choose to update this button’s functionality or remove it.
+    document.getElementById('programBuilderPage').style.display = 'block';
+    document.getElementById('dataCollectorPage').style.display = 'none';
+    document.getElementById('manageDataPage').style.display = 'none';
+    document.querySelectorAll('#mainMenu a.menuItem').forEach(a => a.classList.remove('active'));
+    document.querySelector('#mainMenu a[data-page="programBuilderPage"]').classList.add('active');
+    programBuilderSection.classList.remove('hidden');
+  });
+
+  // Master Cancel to revert to default
+  function cancelProgramBuilder() {
+    // Clear all builder states
+    builderChildName="";
+    builderSelectedDomain="";
+    builderSelections=[];
+    builderEditingProgram=null;
+    updateBuilderSummary();
+    checkFinishButtonVisibility();
+
+    // Reset step display
+    document.getElementById('builderStep1').classList.remove('hidden');
+    document.getElementById('builderStep2').classList.add('hidden');
+    document.getElementById('builderStep3').classList.add('hidden');
+
+    // Hide the entire Program Builder section (if desired)
+    document.getElementById('programBuilderPage').style.display = 'none';
+  }
+
+  // Attach the universal cancel function to each step's Cancel button
+  document.getElementById('builderCancelAllBtn1').addEventListener('click', cancelProgramBuilder);
+  document.getElementById('builderCancelAllBtn2').addEventListener('click', cancelProgramBuilder);
+  document.getElementById('builderCancelAllBtn3').addEventListener('click', cancelProgramBuilder);
+
+  // library import
+  const builderImportLibraryBtn=document.getElementById('builderImportLibraryBtn');
+  const builderImportFile=document.getElementById('builderImportFile');
+  builderImportLibraryBtn.addEventListener('click',()=>{
+    builderImportFile.click();
+  });
+  builderImportFile.addEventListener('change',function(event){
+    const file=event.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const contents=e.target.result;
+      const parsed=parseBuilderCSV(contents);
+      if(parsed){
+        programLibrary=parsed;
+        localStorage.setItem('abaLibrary',JSON.stringify(programLibrary));
+        alert("Library updated!");
+        if(!document.getElementById('builderStep2').classList.contains('hidden')){
+          populateDomainSelect();
+        }
+      } else {
+        alert("Failed to parse CSV. Must have domain, program, target, SD as header.");
+      }
+    };
+    reader.readAsText(file);
+  });
+  function parseBuilderCSV(text){
+    const lines=text.split(/\r?\n/);
+    if(lines.length<2)return null;
+    const hdr=lines[0].split(',').map(x=>x.trim().toLowerCase());
+    const exp=['domain','program','target','sd'];
+    for(let i=0;i<exp.length;i++){
+      if(hdr[i]!==exp[i])return null;
+    }
+    let data=[];
+    for(let i=1;i<lines.length;i++){
+      if(!lines[i].trim())continue;
+      const vals=lines[i].split(',').map(v=>v.trim());
+      if(vals.length<4)continue;
+      data.push({domain:vals[0],program:vals[1],target:vals[2],SD:vals[3]});
+    }
+    return data;
+  }
+
+  // builder summary
+  function updateBuilderSummary(){
+    const c=document.getElementById('builderSummaryContent');
+    c.innerHTML="";
+    if(!builderSelections.length){
+      c.innerHTML="<em>No selections yet.</em>";
+      return;
+    }
+    builderSelections.forEach((domSel,dIndex)=>{
+      const domDiv=document.createElement('div');
+      domDiv.className='summaryDomain';
+      let totTargs=domSel.programs.reduce((acc,p)=>acc+p.targets.length,0);
+      const h4=document.createElement('h4');
+      h4.textContent=`${domSel.domain}: ${domSel.programs.length} program(s), ${totTargs} target(s)`;
+      domDiv.appendChild(h4);
+
+      domSel.programs.forEach((pObj,pIndex)=>{
+        const prDiv=document.createElement('div');
+        prDiv.className='summaryProgram';
+        prDiv.textContent=`${pObj.program} (${pObj.targets.length} target(s)) `;
+
+        const remBtn=document.createElement('button');
+        remBtn.textContent="Remove";
+        remBtn.addEventListener('click',()=>{
+          builderRemoveProgram(dIndex,pIndex);
+        });
+        prDiv.appendChild(remBtn);
+
+        const edtBtn=document.createElement('button');
+        edtBtn.textContent="Edit";
+        edtBtn.addEventListener('click',()=>{
+          editProgramFromSummary(dIndex,pIndex);
+        });
+        prDiv.appendChild(edtBtn);
+
+        domDiv.appendChild(prDiv);
+      });
+      c.appendChild(domDiv);
+    });
+  }
+  function builderRemoveProgram(dIndex,pIndex){
+    builderSelections[dIndex].programs.splice(pIndex,1);
+    if(!builderSelections[dIndex].programs.length){
+      builderSelections.splice(dIndex,1);
+    }
+    updateBuilderSummary();
+  }
+
+  // step 1 -> step 2
+  document.getElementById('builderNext1').addEventListener('click',()=>{
+    builderChildName=document.getElementById('builderChildName').value.trim();
+    if(!builderChildName){
+      alert("Please enter a child's name.");
+      return;
+    }
+    document.getElementById('builderStep1').classList.add('hidden');
+    document.getElementById('builderStep2').classList.remove('hidden');
+    populateDomainSelect();
+  });
+  function populateDomainSelect(){
+    const sel=document.getElementById('builderDomainSelect');
+    sel.innerHTML='<option value="">-- Select Domain --</option>';
+    const uniqueDomains=[...new Set(programLibrary.map(x=>x.domain))];
+    uniqueDomains.forEach(d=>{
+      let opt=document.createElement('option');
+      opt.value=d;
+      opt.textContent=d;
+      sel.appendChild(opt);
+    });
+  }
+
+  // step 2 -> step 3
+  document.getElementById('builderNext2').addEventListener('click',()=>{
+    builderSelectedDomain=document.getElementById('builderDomainSelect').value;
+    if(!builderSelectedDomain){
+      alert("Please select a domain.");
+      return;
+    }
+    document.getElementById('builderStep2').classList.add('hidden');
+    document.getElementById('builderStep3').classList.remove('hidden');
+    document.getElementById('builderCurrentDomainLabel').textContent=builderSelectedDomain;
+    updateBuilderStep3Buttons();
+    populateProgramsAndTargets(builderSelectedDomain);
+  });
+  function updateBuilderStep3Buttons(){
+    const addBtn=document.getElementById('builderAddDomainBtn');
+    if(builderEditingProgram){
+      addBtn.textContent="Save Changes";
+    } else {
+      addBtn.textContent="Save Domain";
+    }
+  }
+  function populateProgramsAndTargets(dom){
+    const container=document.getElementById('programsContainer');
+    container.innerHTML="";
+    let programNames;
+    if(builderEditingProgram){
+      programNames=[builderEditingProgram.program];
+    } else {
+      programNames=[...new Set(programLibrary.filter(r=>r.domain===dom).map(r=>r.program))];
+    }
+    programNames.forEach(prg=>{
+      const progDiv=document.createElement('div');
+      progDiv.className='programItem';
+      progDiv.dataset.program=prg;
+
+      const headerDiv=document.createElement('div');
+      headerDiv.className='programHeader';
+
+      const toggleBtn=document.createElement('button');
+      toggleBtn.type='button';
+      toggleBtn.className='toggleTargetsBtn';
+      toggleBtn.textContent='Show All';
+      headerDiv.appendChild(toggleBtn);
+
+      const progLabel=document.createElement('span');
+      progLabel.className='programLabel';
+      progLabel.textContent=prg;
+      headerDiv.appendChild(progLabel);
+
+      const statusSpan=document.createElement('span');
+      statusSpan.className='programStatus inactive';
+      statusSpan.textContent='Inactive';
+      headerDiv.appendChild(statusSpan);
+
+      progDiv.appendChild(headerDiv);
+
+      const targDiv=document.createElement('div');
+      targDiv.className='targetsContainer hidden';
+      const targets=[...new Set(programLibrary.filter(r=>r.domain===dom&&r.program===prg).map(x=>x.target))];
+      targets.forEach(t=>{
+        const lbl=document.createElement('label');
+        lbl.style.display='block';
+        const cb=document.createElement('input');
+        cb.type='checkbox';
+        cb.className='targetCheckbox';
+        cb.value=t;
+        if(builderEditingProgram && builderEditingProgram.program===prg){
+          if(builderEditingProgram.targets.includes(t)){
+            cb.checked=true;
+          }
+        }
+        cb.addEventListener('change',()=>updateProgStatus(progDiv));
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(" "+t));
+        targDiv.appendChild(lbl);
+      });
+      progDiv.appendChild(targDiv);
+
+      toggleBtn.addEventListener('click',()=>{
+        if(targDiv.classList.contains('hidden')){
+          targDiv.classList.remove('hidden');
+          toggleBtn.textContent='Hide';
+        } else {
+          targDiv.classList.add('hidden');
+          toggleBtn.textContent='Show All';
+        }
+      });
+      container.appendChild(progDiv);
+      updateProgStatus(progDiv);
+    });
+  }
+  function updateProgStatus(pDiv){
+    const st=pDiv.querySelector('.programStatus');
+    const cbs=pDiv.querySelectorAll('.targetCheckbox');
+    const any=Array.from(cbs).some(x=>x.checked);
+    if(any){
+      st.textContent='Active';
+      st.classList.add('active');
+      st.classList.remove('inactive');
+    } else {
+      st.textContent='Inactive';
+      st.classList.remove('active');
+      st.classList.add('inactive');
+    }
+  }
+
+  document.getElementById('builderAddDomainBtn').addEventListener('click',()=>{
+    const domainSel=gatherCurrentDomainSelection();
+    if(!domainSel)return;
+    if(builderEditingProgram){
+      let found=builderSelections.find(d=>d.domain===builderSelectedDomain);
+      if(found){
+        found.programs.push(domainSel.programs[0]);
+      } else {
+        builderSelections.push(domainSel);
+      }
+      builderEditingProgram=null;
+    } else {
+      builderSelections.push(domainSel);
+    }
+    updateBuilderSummary();
+    // after saving domain, remain on step 3 so user can see or select more programs if desired
+    checkFinishButtonVisibility();
+  });
+  function gatherCurrentDomainSelection(){
+    const c=document.getElementById('programsContainer');
+    const items=c.querySelectorAll('.programItem');
+    const domObj={ domain: builderSelectedDomain, programs: [] };
+    let anySelected=false;
+    items.forEach(item=>{
+      const pName=item.dataset.program;
+      const cbs=item.querySelectorAll('.targetCheckbox:checked');
+      if(cbs.length>0){
+        anySelected=true;
+        const targets=Array.from(cbs).map(cb=>cb.value);
+        domObj.programs.push({ program:pName, targets });
+      }
+    });
+    if(!anySelected){
+      alert("Please select at least one target in this domain.");
+      return null;
+    }
+    return domObj;
+  }
+
+  function editProgramFromSummary(dIndex,pIndex){
+    const domEntry=builderSelections[dIndex];
+    const progEntry=domEntry.programs[pIndex];
+    domEntry.programs.splice(pIndex,1);
+    if(!domEntry.programs.length){
+      builderSelections.splice(dIndex,1);
+    }
+    updateBuilderSummary();
+    builderEditingProgram={
+      domain:domEntry.domain,
+      program:progEntry.program,
+      targets:progEntry.targets
+    };
+    builderSelectedDomain=domEntry.domain;
+    document.getElementById('builderStep2').classList.add('hidden');
+    document.getElementById('builderStep3').classList.remove('hidden');
+    document.getElementById('builderCurrentDomainLabel').textContent=domEntry.domain;
+    updateBuilderStep3Buttons();
+    populateProgramsAndTargets(domEntry.domain);
+  }
+  function checkFinishButtonVisibility(){
+    const finishBtn=document.getElementById('builderFinishBtn');
+    if(builderSelections.length>0) finishBtn.classList.remove('hidden');
+    else finishBtn.classList.add('hidden');
+  }
+
+  // finish => add data to main app
+  document.getElementById('builderFinishBtn').addEventListener('click',()=>{
+    if(!builderSelections.length){
+      alert("No programs/targets selected.");
+      return;
+    }
+    // add to appData
+    if(!appData[builderChildName]){
+      appData[builderChildName]={};
+    }
+    builderSelections.forEach(domSel=>{
+      const domain=domSel.domain;
+      if(!appData[builderChildName][domain]){
+        appData[builderChildName][domain]={};
+      }
+      domSel.programs.forEach(pr=>{
+        if(!appData[builderChildName][domain][pr.program]){
+          appData[builderChildName][domain][pr.program]={};
+        }
+        pr.targets.forEach(t=>{
+          const row=programLibrary.find(r=>
+            r.domain===domSel.domain && r.program===pr.program && r.target===t
+          );
+          const sdVal=row?row.SD:"(No SD found)";
+          appData[builderChildName][domain][pr.program][t]={ sd:sdVal, note:"", active:true };
+        });
+      });
+    });
+    saveAppData();
+    alert("Program data added for child: "+builderChildName);
+
+    // Clear
+    builderSelections=[];
+    builderChildName="";
+    builderSelectedDomain="";
+    builderEditingProgram=null;
+    updateBuilderSummary();
+    checkFinishButtonVisibility();
+
+    // Refresh main UI
+    populateChildNames();
+    updateContentAreas();
+    updateProgramSelect();
+    updateTargetSelect();
+    updateInstructions();
+    updatePriorResults();
+
+    // Hide Program Builder page
+    document.getElementById('programBuilderPage').style.display = 'none';
+  });
+  </script>
+</body>
+</html>
